@@ -1,0 +1,17 @@
+{ "id": "holiday_clock",
+  "name": "Holiday Countdown Clock",
+  "shortName":"Holiday Clock",
+  "version": "0.1",
+  "description": "A simple clock displaying a countdown for major US holidays",
+  "icon": "app-icon.png",
+  "type": "clock",
+  "tags": "clock",
+  "supports" : ["BANGLEJS2"],
+  "allow_emulator": true,
+  "screenshots": [{"url":"app-screenshot.png"}],
+  "readme": "README.md",
+  "storage": [
+    {"name":"holiday_clock.app.js","url":"app.js"},
+    {"name":"holiday_clock.img","url":"app-icon.js","evaluate":true}
+  ]
+}
