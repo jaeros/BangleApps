@@ -2,8 +2,6 @@
 //  RESOURCES
 // -----------------------------------------
 
-var babyIcon = atob("Hh6DAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAB///wAAAAAAAAAAP+AAP/+AAAAAAABwPwAAAOAAAAAAAOPxwAAAOAAAAAAB//xwBwB+AAAAAABwP/wB+BwAAAAAABwP+B/wB+AAAAAABwAAAAAAOAAAAAABwABwAAB+AAAAAABwB/wBwB/wAAAAABwB+BxwBx+AAAAAOAAAB/wPx/wAAAAOAAAAAB+OBwAAAAB/+AAAPwOB+AAAAAAB///wAOOBwAAAAAAB+AABwOAOAAAAAAAP///wOAPwAAAAAAP///x///wAAAAAABwABxwABwAAAAAAAOAOBwAB+AAAAAAAPwOBwABwAAAAAAABwOOAABwAAAAAAAB/wOAABwAAAAAAAAPwOAAOAAAAAAAAAB/+ABwAAAAAAAAAAP//+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
-
 var holidayIcons = {
   "Halloween": atob("IyOBAAAAAAAAAcAAAAA8AAAAB8AAAAB8AAAAA8AAAAB4AAAADwAAAAHgAAB8Ph8AP///+A////+B////8H////8P////4/////5/n/5/z/H/j/v8P/D//4P8H///////////////////8//+f34//4/P4HcB+fwEQH8fwAAPw/+EP/g/+e/+A////4A////gAcf8cAAAPgAAAAAAAAA="),
   "Thanksgiving": atob("IyOBAAAAAAAAAAAAAAYADAAD4AfgAP4B/AA/4D/AB7wP+Ab/gf8Az/A/7gD+B/ngD8D/fA3wD++DvgA78OfP8H498/+fh3z/+eDvv/85yff/wPw+//s/j91ub/D5g938H7/3vwP7+eeAf4B8AAf8fz8Af//v4Af/+fwAP/w/gAH+AMAAHwAAAAHAAAAAAAAAAA+AAAAD8AAAAAAAAAA="),
@@ -19,10 +17,6 @@ var holidayIcons = {
   "Independence Day": atob("IyOBAHgAAAAfgAAAAz////5n////7MADgA+YADAA80kn//5gAP//zAAYAPmkkwAPMAB//eYAD//80kmAD5gAMADz////3n/////OAAAB+YAAAA8////55/////zv///fmAAAAPOAAAAef////8/////5gAMADzAAYAHmAAwAPMABgA+YAD//swAH/8ZgAAAAzAAAAB+AAAAD8AAAAAA="),
   "Labor Day": atob("IyOBAAMGDBgP////+//////hgwYMPCAAAIeAAAAA8AAAAB////////////gAAAAPAAAAAeAf4AA8B//AB4DM/4DwGZ34HgMzG4PAZmMweA/8Zg8D/4zB4OA7mDwYB/cHgwP/wPBj4HAeDHgGA8GAAMB4MAAYDwcAAwHgYADAPA8AOAeA8AYA8AYAwB4AwBgDwBgDAH///////////4A=")
 };
-
-// TODO - Date has some formatting that should be able to handle this
-var monthNamesShortened = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-var dayNames = ["Sun", "Mon", "Tues", "Wed", "Thu", "Fri", "Sat"];
 
 var dayInMillis = 1000 * 60 * 60 * 24;
 const months = {
@@ -206,24 +200,22 @@ function init() {
 
 // Returns the next holiday, given the current date and an ordered list of holidays
 function getNextHoliday(orderedHolidays) {
-  // Remove any past holidays
-  // TODO - recalculate next year's and add to the end of the list!
+  // Remove any past holidays at beginning of ordered holidays array
   var today = new Date();
   while (orderedHolidays && orderedHolidays.length && !isCurrentOrFutureDate(today, orderedHolidays[0].date)) {
     orderedHolidays.shift();
   }
 
   // Validate there are holidays left in the list
-  if (orderedHolidays == null || orderedHolidays.length < 1) {
-    throw new Error("Ran out of holidays!");
+  if (!orderedHolidays || orderedHolidays.length < 1) {
+    return null
   }
 
   return orderedHolidays[0];
 }
 
-// Returns a sorted list of holidays. This list should only be calculated
-// once per run, and cached. This assumes the watch app will not run continuously for more
-// than one year, which is hopefully a safe assumption
+// Returns a sorted list of holidays. This list should only need to be calculated
+// once per year, and the result cached. 
 function getOrderedHolidays() {
     
   var today = new Date();
@@ -415,20 +407,31 @@ function draw() {
 
   // Draw am/pm
   g.setFont("Dylex7x13");
-  g.drawString(isAm ? "AM" : "PM", (g.getWidth() / 2) + (timeWidth / 2) - 22, (g.getHeight() / 2) + 25);
+  g.drawString(require("locale").meridian(d, true).toUpperCase(), (g.getWidth() / 2) + (timeWidth / 2) - 22, (g.getHeight() / 2) + 25);
 
   // Draw day/date/month
-  var dateString = dayNames[dayOfWeek] + ", " + dayOfMonth + " " + monthNamesShortened[month];
+  var dayName = require("locale").dow(d, 1);
+  var monthName = require("locale").month(d, 1);
+  var dateString = dayName + ", " + dayOfMonth + " " + monthName;
   g.setFont("Dylex7x13", 2);
   xPosition = Math.round((g.getWidth() / 2) - (g.stringWidth(dateString) / 2));
   g.drawString(dateString, xPosition, (g.getHeight() / 2 - 60));
 
-  // Draw days until
+  // Get the next holiday
   var nextHoliday = getNextHoliday(holidays);
+
+  // If no next holiday is returned, we need to re-compute the ordered holiday list
+  if (nextHoliday == null) {
+    holidays = getOrderedHolidays();
+    nextHoliday = holidays[0];
+  }
+
+  // Draw days until the next holiday
   var c = nextHoliday.color;
   g.setColor(c.r,c.g,c.b).fillRect({x:0, y:133, w: 176, h: 43});
   g.setColor(1,1,1).setFont("Dylex7x13", 2);
   var daysUntilHoliday = getDaysToHoliday(d, nextHoliday);
+  // TODO - localize "day" and "days" strings
   var dueString = daysUntilHoliday + " day" + (daysUntilHoliday == 1 ? "" : "s");
 
   xPosition = Math.round((g.getWidth() / 2) - ((g.stringWidth(dueString) + 35 + 5) / 2));
