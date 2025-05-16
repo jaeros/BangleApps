@@ -209,7 +209,7 @@ function getNextHoliday(orderedHolidays) {
   // Remove any past holidays
   // TODO - recalculate next year's and add to the end of the list!
   var today = new Date();
-  while (orderedHolidays && orderedHolidays.length && !isCurrentOrFutureDate(today, orderedHolidays[0])) {
+  while (orderedHolidays && orderedHolidays.length && !isCurrentOrFutureDate(today, orderedHolidays[0].date)) {
     orderedHolidays.shift();
   }
 
@@ -390,8 +390,7 @@ function draw() {
   Bangle.drawWidgets();
 
   // Create formatted date string
-//   var d = new Date();
-  var d = new Date("December 17, 1995 03:24:00")
+  var d = new Date();
   var h = d.getHours(), 
       m = d.getMinutes();
   var isAm = h <= 12;
@@ -430,10 +429,10 @@ function draw() {
   g.setColor(c.r,c.g,c.b).fillRect({x:0, y:133, w: 176, h: 43});
   g.setColor(1,1,1).setFont("Dylex7x13", 2);
   var daysUntilHoliday = getDaysToHoliday(d, nextHoliday);
-  var dayString = daysUntilHoliday + " day" + (daysUntilHoliday == 1 ? "" : "s");
+  var dueString = daysUntilHoliday + " day" + (daysUntilHoliday == 1 ? "" : "s");
 
-  xPosition = Math.round((g.getWidth() / 2) - ((g.stringWidth(dayString) + 35 + 5) / 2));
-  g.drawString(dayString, xPosition + 35 + 5, 142);
+  xPosition = Math.round((g.getWidth() / 2) - ((g.stringWidth(dueString) + 35 + 5) / 2));
+  g.drawString(dueString, xPosition + 35 + 5, 142);
   
   var image = nextHoliday.name in holidayIcons ? holidayIcons[nextHoliday.name] : babyIcon;
   
